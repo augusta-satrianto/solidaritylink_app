@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solidaritylink_app/main.dart';
 import 'package:solidaritylink_app/models/user_model.dart';
 
 import '../../services/auth_service.dart';
 import '../../widgets/profile_avatar.dart';
+import '../home.dart';
 
 // Halaman profil pengguna yang memungkinkan untuk melihat dan mengedit data diri
 class ProfileScreen extends StatefulWidget {
@@ -59,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     },
   ];
 
-  final userAuth = Session().currentUser;
+  // final userAuth = Session().currentUser;
 
   @override
   void initState() {
@@ -67,18 +70,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Ambil data user dummy sebagai data awal pengguna
     _currentUser = UserModel(
-      id: userAuth!.id,
-      name: userAuth!.name,
-      email: userAuth!.email,
+      // id: userAuth!.id,
+      // name: userAuth!.name,
+      // email: userAuth!.email,
+      // password: 'password',
+      // image: userAuth!.image,
+      // profession: userAuth!.profession,
+      // address: userAuth!.address,
+      // city: userAuth!.city,
+      // province: userAuth!.province,
+      // gender: userAuth!.gender,
+      // birthDate: userAuth!.birthDate,
+      // bio: userAuth!.bio,
+      id: 1,
+      name: 'User 1',
+      email: 'user1@gmail.com',
       password: 'password',
-      image: userAuth!.image,
-      profession: userAuth!.profession,
-      address: userAuth!.address,
-      city: userAuth!.city,
-      province: userAuth!.province,
-      gender: userAuth!.gender,
-      birthDate: userAuth!.birthDate,
-      bio: userAuth!.bio,
+      profession: 'Mahasiswa', // Profesi user
+      address: 'Jl. Contoh No. 123', // Alamat lengkap
+      city: 'Jakarta', // Kota
+      province: 'DKI Jakarta', // Provinsi
+      gender: 'Perempuan', // Jenis kelamin
+      birthDate: DateTime(2000, 1, 1), // Tanggal lahir
+      bio: 'Suka membantu sesama',
     );
 
     // Inisialisasi controllers dengan data dari _currentUser
@@ -880,28 +894,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.check_circle,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text('Berhasil keluar dari aplikasi'),
-                                  ],
+                          onPressed: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.remove('userId');
+                            await prefs.remove('name');
+                            await prefs.remove('email');
+                            await prefs.remove('token');
+
+                            if (context.mounted) {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MainLayout(child: HomePage()),
                                 ),
-                                backgroundColor: Colors.green[400],
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                (route) => false,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'Berhasil keluar dari aplikasi',
+                                      ),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.green[400],
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  margin: const EdgeInsets.all(8),
                                 ),
-                                margin: const EdgeInsets.all(8),
-                              ),
-                            );
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,

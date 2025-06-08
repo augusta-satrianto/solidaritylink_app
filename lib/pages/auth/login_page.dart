@@ -1,12 +1,11 @@
-import 'package:solidaritylink_app/data/dummy_users.dart';
-import 'package:solidaritylink_app/main.dart';
-import 'package:solidaritylink_app/models/user_model.dart';
-import 'package:solidaritylink_app/pages/home.dart';
 import 'package:solidaritylink_app/pages/auth/register_page.dart';
-import 'package:solidaritylink_app/pages/nabila/dashboard_screen.dart';
 import 'package:solidaritylink_app/pages/nabila/main_screen.dart';
-import 'package:solidaritylink_app/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../shared/shared_values.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,27 +20,61 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool isShow = false;
 
-  void _login() {
-    FocusScope.of(context).requestFocus(FocusNode());
-    final email = emailController.text;
-    final pass = passwordController.text;
+  void _login() async {
+    FocusScope.of(context).unfocus();
 
-    UserModel? match = dummyUsers
-        .where((item) => item.email == email && item.password == pass)
-        .cast<UserModel?>()
-        .firstWhere((e) => true, orElse: () => null);
+    final email = emailController.text.trim();
+    final pass = passwordController.text.trim();
 
-    if (match != null) {
-      Session().currentUser = match;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => MainScreen()),
-        (route) => false,
-      );
-    } else {
+    if (email.isEmpty || pass.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Email atau kata sandi salah'),
+          content: Text('Email dan kata sandi tidak boleh kosong'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': pass}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body)['data'];
+        final userId = data['user']['id'];
+        final name = data['user']['name'];
+        final email = data['user']['email'];
+        final token = data['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+        await prefs.setString('name', name);
+        await prefs.setString('email', email);
+        await prefs.setString('token', token);
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => MainScreen()),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email atau kata sandi salah'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan: $e'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/rating_model.dart';
-import '../controllers/rating_controller.dart';
+import 'package:solidaritylink_app/models/review_model.dart';
+import '../../models/rating_model.dart';
+import '../../controllers/rating_controller.dart';
 import 'dart:async';
 
 final ratingController = RatingController();
 
 class FormPage extends StatefulWidget {
-  final Rating? existingRating;
-  final int? editIndex;
+  final ReviewModel review;
 
-  const FormPage({super.key, this.existingRating, this.editIndex});
+  const FormPage({super.key, required this.review});
 
   @override
   State<FormPage> createState() => _FormPageState();
@@ -22,41 +22,6 @@ class _FormPageState extends State<FormPage> {
 
   int? _selectedStars;
   DateTime _selectedDate = DateTime.now();
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.existingRating != null) {
-      _titleController.text = widget.existingRating!.title;
-      _commentController.text = widget.existingRating!.comment;
-      _selectedStars = widget.existingRating!.stars;
-      _selectedDate = widget.existingRating!.date;
-    }
-  }
-
-  void _saveRating() {
-    if (_formKey.currentState!.validate()) {
-      final newRating = Rating(
-        title: _titleController.text,
-        comment: _commentController.text,
-        stars: _selectedStars ?? 1,
-        date: _selectedDate,
-      );
-
-      if (widget.editIndex != null) {
-        // Jika index tersedia, update berdasarkan index
-        ratingController.updateRating(widget.editIndex!, newRating);
-      } else if (widget.existingRating != null) {
-        // Jika objek tersedia, update berdasarkan objek
-        ratingController.updateRatingByObject(widget.existingRating!, newRating);
-      } else {
-        // Tambahkan rating baru
-        ratingController.addRating(newRating);
-      }
-
-      Navigator.pop(context);
-    }
-  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -122,8 +87,11 @@ class _FormPageState extends State<FormPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) =>
-                      value!.isEmpty ? "Judul ulasan tidak boleh kosong" : null,
+                  validator:
+                      (value) =>
+                          value!.isEmpty
+                              ? "Judul ulasan tidak boleh kosong"
+                              : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -139,8 +107,9 @@ class _FormPageState extends State<FormPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  validator: (value) =>
-                      value!.isEmpty ? "Komentar tidak boleh kosong" : null,
+                  validator:
+                      (value) =>
+                          value!.isEmpty ? "Komentar tidak boleh kosong" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -167,8 +136,9 @@ class _FormPageState extends State<FormPage> {
                       _selectedStars = value;
                     });
                   },
-                  validator: (value) =>
-                      value == null ? "Pilih rating terlebih dahulu" : null,
+                  validator:
+                      (value) =>
+                          value == null ? "Pilih rating terlebih dahulu" : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -196,26 +166,23 @@ class _FormPageState extends State<FormPage> {
                 const SizedBox(height: 20),
 
                 // Tombol Simpan
-                ElevatedButton(
-                  onPressed: _saveRating,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4D8156),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 14,
-                    ),
-                  ),
-                  child: const Text(
-                    "Simpan Ulasan",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                // ElevatedButton(
+                //   onPressed: _saveRating,
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: const Color(0xFF4D8156),
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(20),
+                //     ),
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 32,
+                //       vertical: 14,
+                //     ),
+                //   ),
+                //   child: const Text(
+                //     "Simpan Ulasan",
+                //     style: TextStyle(fontSize: 16, color: Colors.white),
+                //   ),
+                // ),
               ],
             ),
           ),

@@ -1,12 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/dummy_users.dart';
-import '../../models/campaign_model.dart';
+import '../../models/campaign.dart';
 import '../../models/collaborator_model.dart';
 import '../../services/auth_service.dart';
 import 'profile_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String name = '';
+  _getPrev() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      name = prefs.getString('name')!;
+    });
+  }
+
+  @override
+  void initState() {
+    _getPrev();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +80,7 @@ class DashboardScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Selamat Datang, ${Session().currentUser!.name}!',
+                        'Selamat Datang, $name!',
                         style: Theme.of(
                           context,
                         ).textTheme.headlineSmall?.copyWith(

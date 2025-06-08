@@ -1,10 +1,9 @@
-import 'package:solidaritylink_app/data/dummy_users.dart';
-import 'package:solidaritylink_app/main.dart';
-import 'package:solidaritylink_app/models/user_model.dart';
-import 'package:solidaritylink_app/pages/home.dart';
-import 'package:solidaritylink_app/pages/nabila/dashboard_screen.dart';
-import 'package:solidaritylink_app/services/auth_service.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solidaritylink_app/shared/shared_values.dart';
 
 import '../nabila/main_screen.dart';
 
@@ -21,18 +20,18 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool isShow = false;
-  void _register() {
-    FocusScope.of(context).unfocus(); // Menutup keyboard
+
+  void _register() async {
+    FocusScope.of(context).unfocus(); // Tutup keyboard
+
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final pass = passwordController.text.trim();
 
-    final isEmailExist = dummyUsers.any((user) => user.email == email);
-
-    if (isEmailExist) {
+    if (name.isEmpty || email.isEmpty || pass.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Email sudah terdaftar'),
+          content: Text('Nama, email, dan password wajib diisi'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -40,27 +39,75 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    final newUser = UserModel(
-      id: dummyUsers.length + 1,
-      name: name,
-      email: email,
-      password: pass,
-      profession: 'Mahasiswa', // Profesi user
-      address: 'Jl. Contoh No. 123', // Alamat lengkap
-      city: 'Jakarta', // Kota
-      province: 'DKI Jakarta', // Provinsi
-      gender: 'Perempuan', // Jenis kelamin
-      birthDate: DateTime(2000, 1, 1), // Tanggal lahir
-      bio: 'Suka membantu sesama',
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': pass,
+          'password_confirmation': pass,
+        }),
+      );
 
-    dummyUsers.add(newUser);
-    Session().currentUser = newUser;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => MainScreen()),
-      (route) => false,
-    );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        final userId = data['data']['user']['id'];
+        final name = data['data']['user']['name'];
+        final email = data['data']['user']['email'];
+        final token = data['data']['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+        await prefs.setString('name', name);
+        await prefs.setString('email', email);
+        await prefs.setString('token', token);
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => MainScreen()),
+          (route) => false,
+        );
+      } else if (response.statusCode == 422) {
+        final errors = data['errors'];
+        String errorMessage = 'Registrasi gagal';
+
+        if (errors['email'] != null) {
+          errorMessage = errors['email'][0];
+        } else if (errors['password'] != null) {
+          errorMessage = errors['password'][0];
+        } else if (errors['name'] != null) {
+          errorMessage = errors['name'][0];
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        final message = data['message'] ?? 'Registrasi gagal';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override

@@ -4,7 +4,7 @@ import 'pages/home.dart';
 import 'pages/news.dart';
 import 'pages/method.dart';
 import 'pages/aboutus.dart';
-import 'pages/page_rating.dart';
+import 'pages/rating/rating_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SolidarityLink',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.green,
         colorScheme: Theme.of(

@@ -1,48 +1,45 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class NewsPage extends StatelessWidget {
-  final List<Map<String, String>> newsList = [
-    {
-      "title": "Galang Dana Banjir Malang",
-      "image": "assets/kol8.jpg",
-      "location": "Malang",
-      "date": "28 Maret 2024",
-      "description":
-          "Kota Batu, Malang, Jawa Timur, terkena banjir yang menelan korban jiwa. Masyarakat membutuhkan bantuan segera."
-    },
-    {
-      "title": "Membangun Rumah di Surga",
-      "image": "assets/kol4.jpg",
-      "location": "Sumatra Utara",
-      "date": "25 Maret 2024",
-      "description":
-          "Warga desa Pematang sedang membangun masjid dan membutuhkan bantuan berupa tenaga dari teman-teman semua."
-    },
-    {
-      "title": "Bencana Alam Melanda Sulawesi",
-      "image": "assets/kol10.jpeg",
-      "location": "Sulawesi Tengah",
-      "date": "20 Maret 2023",
-      "description":
-          "Gempa bumi berkekuatan 6.5 SR mengguncang Sulawesi Tengah, merusak ratusan rumah dan infrastruktur penting."
-    },
-    {
-      "title": "Anak Menjadi Tulang Punggung Keluarga",
-      "image": "assets/kol11.jpeg",
-      "location": "Jawa Timur",
-      "date": "18 Maret 2024",
-      "description":
-          "Anak yang bersekolah di bangku dasar rela berjualan sepulang sekolah demi memenuhi kebutuhan keluarganya."
-    },
-    {
-      "title": "Penyaluran Bantuan Untuk Sumatra Barat",
-      "image": "assets/landing2.jpeg",
-      "location": "Sumatra Barat",
-      "date": "15 Maret 2024",
-      "description":
-          "Penyaluran bantuan berupa pakaian, makanan, obat-obatan ke posko pengungsian korban banjir lahar dingin."
-    },
-  ];
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+
+import '../models/news_model.dart';
+import '../shared/shared_values.dart';
+
+class NewsPage extends StatefulWidget {
+  const NewsPage({super.key});
+
+  @override
+  State<NewsPage> createState() => _NewsPageState();
+}
+
+class _NewsPageState extends State<NewsPage> {
+  late Future<List<NewsModel>> futureNews;
+
+  Future<List<NewsModel>> fetchNews() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/news'),
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List newsList = data['data'];
+      return newsList.map((item) => NewsModel.fromJson(item)).toList();
+    } else {
+      throw Exception('Gagal memuat News: ${response.body}');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    futureNews = fetchNews();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,70 +49,108 @@ class NewsPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           children: [
-            // Bagian daftar berita
-            ...newsList.map((news) {
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 4,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Image.asset(
-                        news['image']!,
-                        height: 160,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+            FutureBuilder<List<NewsModel>>(
+              future: futureNews,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Terjadi kesalahan: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Tidak ada berita'));
+                }
+
+                final newsList = snapshot.data!;
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: newsList.length,
+                  itemBuilder: (context, index) {
+                    final news = newsList[index];
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      elevation: 4,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            news['title']!,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12),
+                            ),
+                            child: Image.network(
+                              news.image,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            news['description']!,
-                            style: TextStyle(
-                                fontSize: 13, color: Colors.grey[700]),
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  news.title,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  news.description,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_pin,
+                                      color: Colors.red,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          news.location,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${news.createdAt.day}/${news.createdAt.month}/${news.createdAt.year}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_pin,
-                                  color: Colors.red, size: 24),
-                              const SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(news['location']!,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                  Text(news['date']!,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600])),
-                                ],
-                              )
-                            ],
-                          )
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+                    );
+                  },
+                );
+              },
+            ),
 
             // Bagian footer informasi
             const SizedBox(height: 24),

@@ -1,61 +1,49 @@
-class Campaign {
-  final String id;
+class CampaignModel {
+  final int id;
+  final int userId;
   final String title;
+  final String description;
   final String location;
   final String city;
-  final String description;
-  final List<String> needs;
-  final String currentCondition;
-  final DateTime reportDate;
-  final String emergencyContact;
-  final List<String> images;
-  final String imageDescription;
-  final String userId;
+  final String province;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  Campaign({
+  CampaignModel({
     required this.id,
+    required this.userId,
     required this.title,
+    required this.description,
     required this.location,
     required this.city,
-    required this.description,
-    required this.needs,
-    required this.currentCondition,
-    required this.reportDate,
-    required this.emergencyContact,
-    required this.images,
-    required this.imageDescription,
-    required this.userId,
+    required this.province,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  // Dummy data
-  static List<Campaign> dummyCampaigns = [
-    Campaign(
-      id: '1',
-      title: 'Bantuan Korban Banjir Jakarta',
-      location: 'Kelurahan Manggarai',
-      city: 'Jakarta Selatan',
-      description: 'Banjir melanda area pemukiman warga',
-      needs: ['Makanan', 'Pakaian', 'Obat-obatan'],
-      currentCondition: 'Air masih menggenang setinggi 50cm',
-      reportDate: DateTime.now(),
-      emergencyContact: '081234567890',
-      images: ['https://via.placeholder.com/300'],
-      imageDescription: 'Kondisi banjir di area pemukiman',
-      userId: '1',
-    ),
-    Campaign(
-      id: '2',
-      title: 'Bantuan Korban Gempa',
-      location: 'Desa Sukamaju',
-      city: 'Cianjur',
-      description: 'Gempa bumi melanda desa',
-      needs: ['Tenda', 'Makanan', 'Obat-obatan', 'Uang'],
-      currentCondition: 'Banyak rumah rusak',
-      reportDate: DateTime.now().subtract(const Duration(days: 2)),
-      emergencyContact: '081234567891',
-      images: ['https://via.placeholder.com/300'],
-      imageDescription: 'Kondisi rumah yang rusak',
-      userId: '1',
-    ),
-  ];
-} 
+  factory CampaignModel.fromJson(Map<String, dynamic> json) {
+    return CampaignModel(
+      id: json['id'],
+      userId: json['user_id'],
+      title: json['title'],
+      description: json['description'],
+      location: json['location'],
+      city: json['city'],
+      province: json['province'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'title': title,
+      'description': description,
+      'location': location,
+      'city': city,
+      'province': province,
+    };
+  }
+}

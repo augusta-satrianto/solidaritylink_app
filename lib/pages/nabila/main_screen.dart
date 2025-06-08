@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:solidaritylink_app/pages/chat/chat_page.dart';
 
+import '../rating/rating_page.dart';
 import 'campaign_screen.dart';
 import 'collaborator_screen.dart';
 import 'dashboard_screen.dart';
@@ -23,8 +24,10 @@ class _MainScreenState extends State<MainScreen> {
     const DashboardScreen(), // Index 0: Beranda
     const CampaignScreen(), // Index 1: Kampanye
     const CollaboratorScreen(), // Index 2: Kolaborator
-    const ChatPage(), // Index 3: Pesan
+    // const ChatPage(), // Index 3: Pesan
     const RatingScreen(), // Index 4: Penilaian
+    const PageRatingPage(),
+    // const RatingScreen(), // Index 4: Penilaian
   ];
 
   // Fungsi saat item navigasi bawah diklik
@@ -61,9 +64,13 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Pesan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star), // Ikon Penilaian
-            label: 'Penilaian',
+            icon: Icon(Icons.star), // Ikon Pesan
+            label: 'Ulasan',
           ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.star), // Ikon Penilaian
+          //   label: 'Penilaian',
+          // ),
         ],
         currentIndex: _selectedIndex, // Menandai item yang sedang aktif
         selectedItemColor: Colors.blue, // Warna ikon dan teks saat aktif
