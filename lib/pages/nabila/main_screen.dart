@@ -24,8 +24,8 @@ class _MainScreenState extends State<MainScreen> {
     const DashboardScreen(), // Index 0: Beranda
     const CampaignScreen(), // Index 1: Kampanye
     const CollaboratorScreen(), // Index 2: Kolaborator
-    // const ChatPage(), // Index 3: Pesan
-    const RatingScreen(), // Index 4: Penilaian
+    const ChatPage(), // Index 3: Pesan
+    // const RatingScreen(), // Index 4: Penilaian
     const PageRatingPage(),
     // const RatingScreen(), // Index 4: Penilaian
   ];

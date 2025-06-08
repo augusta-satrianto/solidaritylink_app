@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_page.dart';
 import 'create_rating_page.dart';
-import 'form_page.dart';
 import 'list_rating_page.dart';
 
 class PageRatingPage extends StatelessWidget {

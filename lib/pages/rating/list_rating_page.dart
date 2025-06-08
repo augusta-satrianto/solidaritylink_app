@@ -4,8 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solidaritylink_app/pages/rating/update_rating_page.dart';
 import '../../models/review_model.dart';
 import '../../shared/shared_values.dart';
-import 'form_page.dart';
-import '../../models/rating_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -76,30 +74,6 @@ class _ListPageState extends State<ListPage> {
   void initState() {
     super.initState();
     futureReview = fetchReview();
-  }
-
-  void _deleteRating(int index) {
-    setState(() {
-      ratingController.deleteRating(index);
-    });
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    return months[month - 1];
   }
 
   Map<int, int> _calculateRatingStats(List<ReviewModel> reviews) {
